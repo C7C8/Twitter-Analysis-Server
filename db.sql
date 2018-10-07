@@ -32,9 +32,6 @@ CREATE OR REPLACE VIEW tweets_hourly AS (
     AVG(LENGTH(content))                                            AS avg_len,
     STDDEV(LENGTH(content))                                         AS stdev_len
   FROM tweets
-  WHERE is_retweet = 0 AND
-    source = 'Twitter for iPhone' AND
-    YEAR(created) >= 2015
   GROUP BY username, created
   ORDER BY tweets.created DESC
 );
@@ -49,9 +46,6 @@ CREATE OR REPLACE VIEW tweets_hourly_by_day AS (
     AVG(LENGTH(content))    AS avg_len,
     STDDEV(LENGTH(content)) AS stdev_len
   FROM tweets
-  WHERE is_retweet = 0 AND
-    source = 'Twitter for iPhone' AND
-    YEAR(created) >= 2015
   GROUP BY username, t_hour, t_day
   ORDER BY t_day ASC, t_hour ASC
 );
@@ -65,9 +59,6 @@ CREATE OR REPLACE VIEW tweets_hourly_total AS (
     AVG(LENGTH(content))    AS avg_len,
     STDDEV(LENGTH(content)) AS stdev_len
   FROM tweets
-  WHERE is_retweet = 0 AND
-    source = 'Twitter for iPhone' AND
-    YEAR(created) >= 2015
   GROUP BY username, t_hour
   ORDER BY t_hour ASC
 );
@@ -81,15 +72,6 @@ CREATE OR REPLACE VIEW tweets_daily AS (
     AVG(LENGTH(content))    AS avg_len,
     STDDEV(LENGTH(content)) AS stdev_len
   FROM tweets
-  WHERE is_retweet = 0 AND
-    source = 'Twitter for iPhone' AND
-    YEAR(created) >= 2015
   GROUP BY username, t_date
   ORDER BY t_date DESC
 );
-
-SELECT * FROM tweets WHERE
-  (source = 'Twitter for iPhone' OR source = 'Twitter for Android') AND
-    is_retweet = 0 AND
-    YEAR(created) >= 2015
-ORDER BY created DESC;
