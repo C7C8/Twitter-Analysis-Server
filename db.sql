@@ -3,13 +3,13 @@ CREATE TABLE analyzed_users (
   fullname  VARCHAR(50)
 );
 
-CREATE TABLE tweets (
+CREATE OR REPLACE TABLE tweets (
   username   VARCHAR(15),
-  source     VARCHAR(24),
   content    VARCHAR(384),
   created    DATETIME,
-  rewteets   INTEGER UNSIGNED,
+  retweets   INTEGER UNSIGNED,
   favorites  INTEGER UNSIGNED,
+  replies    INTEGER UNSIGNED,
   is_retweet INTEGER UNSIGNED CHECK (is_retweet = 0 OR is_retweet = 1),
   id         BIGINT UNSIGNED PRIMARY KEY,
 
