@@ -1,3 +1,5 @@
+"""Functions for generating and working with markov chains"""
+import random
 import re
 import nltk
 
@@ -68,4 +70,17 @@ def all_words_prob(chain):
 	for word in chain.keys():
 		ret.append({"word": word, "cnt": chain[word]["cnt"]})
 		total_cnt = total_cnt + chain[word]["cnt"]
-	return sorted([{"word": x["word"], "prob": x["cnt"] / total_cnt, "cnt": x["cnt"]} for x in ret], key=lambda p: -p["prob"])
+	return sorted([{"word": x["word"], "prob": x["cnt"] / total_cnt, "cnt": x["cnt"]} for x in ret],
+				  key=lambda p: -p["prob"])
+
+
+def get_next_word(chain, word):
+	if word is None:
+		return "END"  # some odd edge case came up...
+	prob_map = prob_list_for_word(chain[word])
+	selector = random.random()
+	total = 0
+	for word in prob_map:
+		total = total + word["prob"]
+		if selector <= total:
+			return word["word"]

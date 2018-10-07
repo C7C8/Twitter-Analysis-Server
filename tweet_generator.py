@@ -4,16 +4,7 @@ from sacremoses import MosesDetokenizer
 import random
 
 
-def get_next_word(chain, word):
-    if word is None:
-        return "END" # some odd edge case came up...
-    prob_map = prob_list_for_word(chain[word])
-    selector = random.random()
-    total = 0
-    for word in prob_map:
-        total = total + word["prob"]
-        if selector <= total:
-            return word["word"]
+
 
 
 connection, cursor = get_db()
