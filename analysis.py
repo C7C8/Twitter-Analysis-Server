@@ -1,4 +1,4 @@
-from tweets_util import get_db
+from markov import get_db
 from collections import Counter
 import nltk
 import pandas as pd

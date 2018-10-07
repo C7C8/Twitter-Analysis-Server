@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from tweets_util import get_markov_chain, get_db, prob_list_for_word
+from markov import get_markov_chain, get_db, prob_list_for_word
 from sacremoses import MosesDetokenizer
 import random
 

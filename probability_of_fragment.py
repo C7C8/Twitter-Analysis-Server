@@ -1,9 +1,8 @@
 #!/usr/bin/python
 import sys
 import nltk
-from tweets_util import get_markov_chain, get_db, prob_list_for_word, all_words_prob
+from markov import get_markov_chain, get_db, prob_list_for_word, all_words_prob
 
-connection, cursor = get_db()
 chain = get_markov_chain(cursor)
 words = [word.lower() for word in nltk.word_tokenize(sys.argv[1])]
 
