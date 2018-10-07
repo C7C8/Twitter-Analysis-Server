@@ -1,4 +1,6 @@
 """Functions for generating and working with markov chains"""
+from functools import reduce
+
 import random
 import re
 import nltk
@@ -53,6 +55,13 @@ def build_markov_chain(username):
 				else:
 					cur["dst"][child_word] = 1
 				words[word] = cur
+
+		# Now that all data is assembled, calculate probabilities for each individual word
+		for word in words.keys():
+			dstlist = words[word]["dst"]
+			count = sum(int(x) for x in dstlist.values())
+			for dst in dstlist.keys():
+				words[word]["dst"][dst] = {"cnt": dstlist[dst], "prob": dstlist[dst] / count}
 
 		return words
 
