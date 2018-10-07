@@ -2,19 +2,20 @@
 import random
 import re
 import nltk
+from sacremoses import MosesDetokenizer
 
 from db import get_db
 
 
 def build_markov_chain(username):
 	"""Build a markov chain out of data from a user's tweets"""
-	# Fetch list of all tweets from db
 	with get_db() as cursor:
 		cursor.execute(
-			"SELECT content FROM tweets WHERE (source = 'Twitter for iPhone' OR source = 'Twitter for Android' " \
-			"AND is_retweet = 0 AND username = %s)",
+			"SELECT content FROM tweets WHERE is_retweet = 0 AND username = %s",
 			username)
 		content = [str(x[0]) for x in cursor.fetchall()]
+		if len(content) == 0:
+			return
 
 		words = {"START": {"cnt": 0, "dst": {}}, "END": {"cnt": 0, "dst": {}}}
 		for tweet in content:
@@ -25,7 +26,7 @@ def build_markov_chain(username):
 			tweet = re.sub("(http(s)?://)?[^\s]*\.co(m)?(/[^\s]*)?", "", tweet)
 
 			# Tokenize with NLTK
-			tweet_words = [word.lower() for word in nltk.tokenize.word_tokenize(tweet)]
+			tweet_words = nltk.tokenize.casual_tokenize(tweet, strip_handles=True, preserve_case=False)
 
 			# Parent the first word in the tweet to START
 			if len(tweet_words) > 0:
@@ -57,6 +58,8 @@ def build_markov_chain(username):
 
 
 def prob_list_for_word(word):
+	"""Get a probability list for a given word -- it's an easier format to work with
+	than a markov chain dictionary"""
 	dstlist = word["dst"]
 	ret = []
 	for dst in dstlist.keys():
@@ -65,16 +68,17 @@ def prob_list_for_word(word):
 
 
 def all_words_prob(chain):
+	"""Get a list of the probabilities (frequency) for each individual word"""
 	total_cnt = 0
 	ret = []
 	for word in chain.keys():
 		ret.append({"word": word, "cnt": chain[word]["cnt"]})
 		total_cnt = total_cnt + chain[word]["cnt"]
-	return sorted([{"word": x["word"], "prob": x["cnt"] / total_cnt, "cnt": x["cnt"]} for x in ret],
-				  key=lambda p: -p["prob"])
+	return sorted([{"word": x["word"], "prob": x["cnt"] / total_cnt, "cnt": x["cnt"]} for x in ret], key=lambda p: -p["prob"])
 
 
 def get_next_word(chain, word):
+	"""Use markov chain data to generate the next word using the last word. Non-deterministic, naturally."""
 	if word is None:
 		return "END"  # some odd edge case came up...
 	prob_map = prob_list_for_word(chain[word])
@@ -84,3 +88,31 @@ def get_next_word(chain, word):
 		total = total + word["prob"]
 		if selector <= total:
 			return word["word"]
+
+
+def generate_tweet(chain, length=0):
+	"""Generate a tweet of given length (or """
+	detokenizer = MosesDetokenizer()
+	size = 1
+	sentence = [get_next_word(chain, "START")]
+	while length == 0 or length + 2 <= size:
+		next_word = get_next_word(chain, sentence[-1])
+		if next_word == "END":
+			break
+		sentence.append(next_word)
+	return detokenizer.detokenize(sentence)
+
+
+def probability_of_fragment(chain, fragment):
+	"""Return the probability of a fragment occurring"""
+	words = [word.lower() for word in nltk.word_tokenize(fragment)]
+	if (words[0]) not in chain.keys():
+		return 0
+	totalProb = float(chain[words[0]]["prob"])
+	for i, word in enumerate(words):
+		if i == 0:
+			continue
+		if words[i] not in chain[words[i-1]]["dst"].keys():
+			return 0
+		totalProb = totalProb * chain[words[i-1]]["dst"][words[i]]["prob"]
+	return totalProb
