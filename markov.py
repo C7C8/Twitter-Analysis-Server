@@ -25,10 +25,12 @@ def build_markov_chain(username):
 			tweet = re.sub("[#@][\w\d]+", "", tweet)
 
 			# Remove URLs
-			tweet = re.sub("(http(s)?://)?[^\s]*\.co(m)?(/[^\s]*)?", "", tweet)
+			tweet = re.sub("(http(s)?://)\S+", "", tweet)
+			tweet = re.sub("pic.twitter.com/\S+", "", tweet)
 
 			# Tokenize with NLTK
 			tweet_words = nltk.tokenize.casual_tokenize(tweet, strip_handles=True, preserve_case=False)
+			print(tweet_words)
 
 			# Parent the first word in the tweet to START
 			if len(tweet_words) > 0:
