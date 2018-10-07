@@ -100,7 +100,7 @@ def get_next_word(chain, word):
 
 
 def generate_tweet(chain, length=0):
-	"""Generate a tweet of given length (or """
+	"""Generate a tweet of given length (or until it ends naturally)"""
 	detokenizer = MosesDetokenizer()
 	size = 1
 	sentence = [get_next_word(chain, "START")]

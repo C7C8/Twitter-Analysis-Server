@@ -40,7 +40,7 @@ CREATE OR REPLACE VIEW tweets_hourly_by_day AS (
   SELECT
     username,
     HOUR(created)           AS t_hour,
-    DAYOFWEEK(created)      AS t_day,
+    WEEKDAY(created)        AS t_day,
     COUNT(*)                AS total,
     SUM(LENGTH(content))    AS total_len,
     AVG(LENGTH(content))    AS avg_len,
@@ -74,4 +74,17 @@ CREATE OR REPLACE VIEW tweets_daily AS (
   FROM tweets
   GROUP BY username, t_date
   ORDER BY t_date DESC
+);
+
+CREATE OR REPLACE VIEW tweets_weekly AS (
+  SELECT
+    username,
+    WEEKDAY(created)        AS t_weekday,
+    COUNT(*)                AS total,
+    SUM(LENGTH(content))    AS total_len,
+    AVG(LENGTH(content))    AS avg_len,
+    STDDEV(LENGTH(content)) AS stdev_len
+  FROM tweets
+  GROUP BY username, t_weekday
+  ORDER BY t_weekday ASC
 );
