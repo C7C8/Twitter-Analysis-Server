@@ -11,6 +11,7 @@ CREATE OR REPLACE TABLE tweets (
   favorites  INTEGER UNSIGNED,
   replies    INTEGER UNSIGNED,
   is_retweet INTEGER UNSIGNED CHECK (is_retweet = 0 OR is_retweet = 1),
+  sentiment  FLOAT,
   id         BIGINT UNSIGNED PRIMARY KEY,
 
   CONSTRAINT fk_username
@@ -41,7 +42,9 @@ CREATE OR REPLACE VIEW tweets_hourly AS (
     COUNT(*)                                                        AS total,
     SUM(LENGTH(content))                                            AS total_len,
     AVG(LENGTH(content))                                            AS avg_len,
-    STDDEV(LENGTH(content))                                         AS stdev_len
+    STDDEV(LENGTH(content))                                         AS stdev_len,
+    AVG(sentiment)                                                  AS avg_sent,
+    STDDEV(sentiment)                                               AS stdev_sent
   FROM tweets
   GROUP BY username, created
   ORDER BY tweets.created DESC
@@ -55,7 +58,9 @@ CREATE OR REPLACE VIEW tweets_hourly_by_day AS (
     COUNT(*)                AS total,
     SUM(LENGTH(content))    AS total_len,
     AVG(LENGTH(content))    AS avg_len,
-    STDDEV(LENGTH(content)) AS stdev_len
+    STDDEV(LENGTH(content)) AS stdev_len,
+    AVG(sentiment)          AS avg_sent,
+    STDDEV(sentiment)       AS stdev_sent
   FROM tweets
   GROUP BY username, t_hour, t_day
   ORDER BY t_day ASC, t_hour ASC
@@ -68,7 +73,9 @@ CREATE OR REPLACE VIEW tweets_hourly_total AS (
     COUNT(*)                AS total,
     SUM(LENGTH(content))    AS total_len,
     AVG(LENGTH(content))    AS avg_len,
-    STDDEV(LENGTH(content)) AS stdev_len
+    STDDEV(LENGTH(content)) AS stdev_len,
+    AVG(sentiment)          AS avg_sent,
+    STDDEV(sentiment)       AS stdev_sent
   FROM tweets
   GROUP BY username, t_hour
   ORDER BY t_hour ASC
@@ -81,7 +88,9 @@ CREATE OR REPLACE VIEW tweets_daily AS (
     COUNT(*)                AS total,
     SUM(LENGTH(content))    AS total_len,
     AVG(LENGTH(content))    AS avg_len,
-    STDDEV(LENGTH(content)) AS stdev_len
+    STDDEV(LENGTH(content)) AS stdev_len,
+    AVG(sentiment)          AS avg_sent,
+    STDDEV(sentiment)       AS stdev_sent
   FROM tweets
   GROUP BY username, t_date
   ORDER BY t_date DESC
@@ -94,7 +103,9 @@ CREATE OR REPLACE VIEW tweets_weekly AS (
     COUNT(*)                AS total,
     SUM(LENGTH(content))    AS total_len,
     AVG(LENGTH(content))    AS avg_len,
-    STDDEV(LENGTH(content)) AS stdev_len
+    STDDEV(LENGTH(content)) AS stdev_len,
+    AVG(sentiment)          AS avg_sent,
+    STDDEV(sentiment)       AS stdev_sent
   FROM tweets
   GROUP BY username, t_weekday
   ORDER BY t_weekday ASC

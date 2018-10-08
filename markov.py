@@ -47,14 +47,7 @@ def build_markov_chain(username):
 
 		words = {"START": {"cnt": 0, "dst": {}}, "END": {"cnt": 0, "dst": {}}}
 		for tweet in content:
-			# Remove hashtags
-			tweet = re.sub("[#@][\w\d]+", "", tweet)
-
-			# Remove URLs
-			tweet = re.sub("(http(s)?://)\S+", "", tweet)
-			tweet = re.sub("pic.twitter.com/\S+", "", tweet)
-
-			# Tokenize with NLTK
+			tweet = sanitize(tweet)
 			tweet_words = nltk.tokenize.casual_tokenize(tweet, strip_handles=True, preserve_case=False)
 
 			# Parent the first word in the tweet to START
@@ -91,6 +84,15 @@ def build_markov_chain(username):
 				words[word]["dst"][dst] = {"cnt": dstlist[dst], "prob": dstlist[dst] / count}
 
 		return words
+
+
+def sanitize(text):
+	# Remove hashtags
+	text = re.sub("[#@][\w\d]+", "", text)
+
+	# Remove URLs
+	text = re.sub("(http(s)?://)\S+", "", text)
+	return re.sub("pic.twitter.com/\S+", "", text)
 
 
 def prob_list_for_word(word):
