@@ -5,7 +5,7 @@ CREATE TABLE analyzed_users (
 
 CREATE OR REPLACE TABLE tweets (
   username   VARCHAR(15),
-  content    VARCHAR(384),
+  content    VARCHAR(512),
   created    DATETIME,
   retweets   INTEGER UNSIGNED,
   favorites  INTEGER UNSIGNED,

@@ -8,7 +8,7 @@ import db
 
 def scrape_user_to_db(username):
 	"""Scrape a user and insert everything on them into the database. Will overwrite existing data!"""
-	tweets = twitterscraper.query_tweets(username)
+	tweets = twitterscraper.query_tweets("from:" + username, 10000)
 	if len(tweets) == 0:
 		return
 	with db.get_db() as cursor:
