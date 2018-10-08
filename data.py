@@ -15,8 +15,7 @@ def scrape_user_to_db(username):
 
 		# Drop every existing tweet we have on the user so we can do a full insert later.
 		# TODO: Optimize so instead only tweets we don't have are fetched
-		print(tweets[0].user)
-		cursor.execute("DELETE FROM tweets WHERE username=%s", tweets[0].user)
+		cursor.execute("DELETE FROM analyzed_users WHERE username=%s", tweets[0].user)
 		cursor.execute("INSERT INTO analyzed_users (username, fullname) VALUES (%s, %s)",
 					   (username, tweets[0].fullname))
 
@@ -111,7 +110,6 @@ def get_tweets_hourly_by_day(username):
 			return []
 
 		for hour in hours:
-			print(len(hour))
 			ret[hour[1]][hour[0]] = {
 				"total": int(hour[2]),
 				"total_len": int(hour[3]),

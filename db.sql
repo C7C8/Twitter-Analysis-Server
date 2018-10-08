@@ -18,8 +18,19 @@ CREATE OR REPLACE TABLE tweets (
     ON DELETE CASCADE
     ON UPDATE CASCADE,
 
+  INDEX username_index (username DESC),
   INDEX created_index (created DESC),
   INDEX id_index (id DESC)
+);
+
+CREATE OR REPLACE TABLE chains (
+  username   VARCHAR(15) PRIMARY KEY,
+  chain      LONGBLOB,
+
+  CONSTRAINT fk_uname
+    FOREIGN KEY (username) REFERENCES analyzed_users (username)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );
 
 -- VIEWS

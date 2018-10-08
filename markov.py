@@ -4,9 +4,35 @@ from functools import reduce
 import random
 import re
 import nltk
+import pickle
 from sacremoses import MosesDetokenizer
 
 from db import get_db
+
+
+def get_markov_chain(username, force_new=False):
+	"""Returns a markov chain for a given user. If the user hasn't been analyzed yet,
+	a new markov chain will be generated and stored in the database. If the user *has*
+	been analyzed before, the data from the database will be loaded instead. This data
+	is stored as a binary (pickle) for efficiency. If desired a new markov chain can
+	be forced."""
+	with get_db() as cursor:
+		cursor.execute("SELECT chain FROM chains WHERE username=%s", username)
+		res = cursor.fetchone()
+		if res is None or force_new:
+			# Generate a new chain, pickle it, store it in the database, and return it.
+			chain = build_markov_chain(username)
+			if chain is None:
+				return
+
+			chain_binary = pickle.dumps(chain)
+			sql = "INSERT INTO chains (username, chain) VALUES (%s, %s)"
+			cursor.execute(sql, (username, chain_binary))
+			cursor.connection.commit()
+			return chain
+		else:
+			chain = pickle.loads(res[0])
+			return chain
 
 
 def build_markov_chain(username):
@@ -30,7 +56,6 @@ def build_markov_chain(username):
 
 			# Tokenize with NLTK
 			tweet_words = nltk.tokenize.casual_tokenize(tweet, strip_handles=True, preserve_case=False)
-			print(tweet_words)
 
 			# Parent the first word in the tweet to START
 			if len(tweet_words) > 0:
