@@ -20,3 +20,10 @@ def get_db():
 
 	connection = pymysql.connect(**conf)
 	return connection.cursor()
+
+
+def get_analyzed_users():
+	"""Get list of analyzed users -- their username and real name together in a dict"""
+	with get_db() as cursor:
+		cursor.execute("SELECT username, fullname FROM analyzed_users")
+		return [{"username": res[0], "fullname": res[1]} for res in cursor.fetchall()]

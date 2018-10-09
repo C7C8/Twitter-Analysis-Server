@@ -1,5 +1,4 @@
-"""Scrape tweets from Twitter using twitterscraper and shove them into the database"""
-from datetime import datetime
+"""Base data analysis functions"""
 
 import twitterscraper
 
@@ -9,7 +8,7 @@ from sentiment import get_text_sentiment
 
 def scrape_user_to_db(username):
 	"""Scrape a user and insert everything on them into the database. Will overwrite existing data!"""
-	tweets = twitterscraper.query_tweets("from:" + username, 5000)
+	tweets = twitterscraper.query_tweets("from:"+username, 5000)
 	if len(tweets) == 0:
 		return
 	with db.get_db() as cursor:
@@ -30,11 +29,12 @@ def scrape_user_to_db(username):
 				tweet.retweets,
 				tweet.likes,
 				tweet.replies,
-				tweet.user != username,
+				tweet.user.lower() != username.lower(),
 				tweet.id,
 				get_text_sentiment(tweet.text)
 			))
 		cursor.connection.commit()
+		return len(tweets)
 
 
 def get_tweets_by_day(username):
@@ -128,3 +128,22 @@ def get_tweets_hourly_by_day(username):
 				"stdev_sent": float(hour[7])
 			}
 		return ret
+
+
+def get_tweets_all_time(username):
+	"""Get all-time status for a user's tweets"""
+	with db.get_db() as cursor:
+		sql = "SELECT total, total_len, avg_len, stdev_len, avg_sent, stdev_sent FROM tweets_all WHERE username=%s"
+		cursor.execute(sql, username)
+		stats = cursor.fetchone()
+		if stats is None:
+			return None
+
+		return {
+			"total": int(stats[0]),
+			"total_len": int(stats[1]),
+			"avg_len": float(stats[2]),
+			"stdev_len": float(stats[3]),
+			"avg_sent": float(stats[4]),
+			"stdev_sent": float(stats[5])
+		}

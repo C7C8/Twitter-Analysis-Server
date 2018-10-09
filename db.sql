@@ -110,3 +110,16 @@ CREATE OR REPLACE VIEW tweets_weekly AS (
   GROUP BY username, t_weekday
   ORDER BY t_weekday ASC
 );
+
+CREATE OR REPLACE VIEW tweets_all AS (
+  SELECT
+    username,
+    COUNT(*)                AS total,
+    SUM(LENGTH(content))    AS total_len,
+    AVG(LENGTH(content))    AS avg_len,
+    STDDEV(LENGTH(content)) AS stdev_len,
+    AVG(sentiment)          AS avg_sent,
+    STDDEV(sentiment)       AS stdev_sent
+  FROM tweets
+  GROUP BY username
+);
