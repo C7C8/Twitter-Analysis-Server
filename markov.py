@@ -143,10 +143,10 @@ def generate_tweet(chain, length=0):
 
 def probability_of_fragment(chain, fragment):
 	"""Return the probability of a fragment occurring"""
-	words = [word.lower() for word in nltk.word_tokenize(fragment)]
+	words = [word.lower() for word in nltk.casual_tokenize(fragment, preserve_case=False)]
 	if (words[0]) not in chain.keys():
 		return 0
-	totalProb = float(chain[words[0]]["prob"])
+	totalProb = 1
 	for i, word in enumerate(words):
 		if i == 0:
 			continue

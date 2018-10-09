@@ -1,9 +1,10 @@
+import nltk
 from flask import Flask
 from flask_restplus import Api, Resource, reqparse
 
 import data
 import db
-from markov import get_markov_chain, generate_tweet
+from markov import get_markov_chain, generate_tweet, sanitize, probability_of_fragment, get_next_word
 
 app = Flask(__name__)
 api = Api(app)
@@ -82,7 +83,30 @@ class Generate(Resource):
 			return response(False, "User " + args["username"] + " not analyzed yet"), 400
 
 		tweets = [generate_tweet(chain) for x in range(args["count"])]
-		return response(True, str(args["count"]) + " tweets generated", "tweets", tweets), 200
+		return response(True, str(args["count"]) + " tweets generated", "tweets", tweets) , 200
+
+
+@ns.route("/probability")
+class Probability(Resource):
+	"""Calculate probability for sentence fragment"""
+
+	def get(self):
+		parser = reqparse.RequestParser()
+		parser.add_argument("username", type=str, required=True)
+		parser.add_argument("text", type=str, required=True)
+		args = parser.parse_args()
+
+		chain = get_markov_chain(args["username"])
+		sentence = nltk.tokenize.casual_tokenize(sanitize(args["text"]), preserve_case=False)
+		if chain is None:
+			return response(False, "User " + args["username"] + " not analyzed yet"), 400
+
+		return {
+			"status": "success",
+			"message": "Analysis follows",
+			"probability": probability_of_fragment(chain, args["text"]),
+			"next_word": get_next_word(chain, sentence[-1])
+		}, 200
 
 
 def response(success, message, descriptor=None, payload=None):
