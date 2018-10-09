@@ -1,6 +1,7 @@
 """Base data analysis functions"""
 
 import twitterscraper
+import pymysql
 
 import db
 from sentiment import get_text_sentiment
@@ -8,31 +9,39 @@ from sentiment import get_text_sentiment
 
 def scrape_user_to_db(username):
 	"""Scrape a user and insert everything on them into the database. Will overwrite existing data!"""
-	tweets = twitterscraper.query_tweets("from:"+username, 5000)
-	if len(tweets) == 0:
-		return
 	with db.get_db() as cursor:
 
-		# Drop every existing tweet we have on the user so we can do a full insert later.
-		# TODO: Optimize so instead only tweets we don't have are fetched
-		cursor.execute("DELETE FROM analyzed_users WHERE username=%s", tweets[0].user)
-		cursor.execute("INSERT INTO analyzed_users (username, fullname) VALUES (%s, %s)",
-					   (username, tweets[0].fullname))
+		tweets = []
+
+		# If we've haven't scraped this user before, do a full scrape. If we have, only get the tweets
+		# we don't have yet.
+		cursor.execute("SELECT * FROM analyzed_users WHERE username=%s", username)
+		if cursor.fetchone() is None:
+			tweets = twitterscraper.query_tweets("from:" + username, limit=5000)
+			if len(tweets) > 0:
+				cursor.execute("INSERT INTO analyzed_users (username, fullname) VALUES (%s, %s)", (username, tweets[0].fullname))
+		else:
+			cursor.execute("SELECT MAX(created) FROM tweets WHERE username=%s", username)
+			d = cursor.fetchone()[0]
+			tweets = twitterscraper.query_tweets("from:" + username, begindate=d.date(), limit=5000)
 
 		sql = "INSERT INTO tweets (username, content, created, retweets, favorites, replies, is_retweet, id, sentiment) " \
 			  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
 		for tweet in tweets:
-			cursor.execute(sql, (
-				username,
-				tweet.text,
-				tweet.timestamp,
-				tweet.retweets,
-				tweet.likes,
-				tweet.replies,
-				tweet.user.lower() != username.lower(),
-				tweet.id,
-				get_text_sentiment(tweet.text)
-			))
+			try:
+				cursor.execute(sql, (
+					username,
+					tweet.text,
+					tweet.timestamp,
+					tweet.retweets,
+					tweet.likes,
+					tweet.replies,
+					tweet.user.lower() != username.lower(),
+					tweet.id,
+					get_text_sentiment(tweet.text)
+				))
+			except pymysql.err.IntegrityError:
+				pass
 		cursor.connection.commit()
 		return len(tweets)
 

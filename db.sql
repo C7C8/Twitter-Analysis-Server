@@ -123,3 +123,5 @@ CREATE OR REPLACE VIEW tweets_all AS (
   FROM tweets
   GROUP BY username
 );
+
+SELECT MAX(created) FROM tweets WHERE username='realDonaldTrump';
