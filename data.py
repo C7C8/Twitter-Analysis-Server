@@ -1,6 +1,6 @@
 """Base data analysis functions"""
 
-import twitterscraper
+from twitterscraper.query import query_tweets_from_user
 import pymysql
 
 import db
@@ -17,18 +17,24 @@ def scrape_user_to_db(username):
 		# we don't have yet.
 		cursor.execute("SELECT * FROM analyzed_users WHERE username=%s", username)
 		if cursor.fetchone() is None:
-			tweets = twitterscraper.query_tweets("from:" + username, limit=5000)
-			if len(tweets) > 0:
-				cursor.execute("INSERT INTO analyzed_users (username, fullname) VALUES (%s, %s)", (username, tweets[0].fullname))
+			cursor.execute("INSERT INTO analyzed_users (username) VALUES (%s)", username)
+			tweets = query_tweets_from_user(username, limit=5000)
 		else:
 			cursor.execute("SELECT MAX(created) FROM tweets WHERE username=%s", username)
 			d = cursor.fetchone()[0]
-			tweets = twitterscraper.query_tweets("from:" + username, begindate=d.date(), limit=5000)
+			tweets = query_tweets_from_user(username, limit=5000)
+			tweets = list(filter(lambda tw: d < tw.timestamp, tweets))
 
 		sql = "INSERT INTO tweets (username, content, created, retweets, favorites, replies, is_retweet, id, sentiment) " \
 			  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+		set_username = False
 		for tweet in tweets:
 			try:
+				# Set the user's full name if it hasn't already been set.
+				if not set_username and tweet.user.lower() == username.lower():
+					cursor.execute("UPDATE analyzed_users SET fullname=%s WHERE username=%s", (tweet.fullname, username))
+					set_username = True
+
 				cursor.execute(sql, (
 					username,
 					tweet.text,

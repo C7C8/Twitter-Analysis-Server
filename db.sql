@@ -46,6 +46,7 @@ CREATE OR REPLACE VIEW tweets_hourly AS (
     AVG(sentiment)                                                  AS avg_sent,
     STDDEV(sentiment)                                               AS stdev_sent
   FROM tweets
+  WHERE is_retweet = 0
   GROUP BY username, created
   ORDER BY tweets.created DESC
 );
@@ -62,6 +63,7 @@ CREATE OR REPLACE VIEW tweets_hourly_by_day AS (
     AVG(sentiment)          AS avg_sent,
     STDDEV(sentiment)       AS stdev_sent
   FROM tweets
+  WHERE is_retweet = 0
   GROUP BY username, t_hour, t_day
   ORDER BY t_day ASC, t_hour ASC
 );
@@ -77,6 +79,7 @@ CREATE OR REPLACE VIEW tweets_hourly_total AS (
     AVG(sentiment)          AS avg_sent,
     STDDEV(sentiment)       AS stdev_sent
   FROM tweets
+  WHERE is_retweet = 0
   GROUP BY username, t_hour
   ORDER BY t_hour ASC
 );
@@ -92,6 +95,7 @@ CREATE OR REPLACE VIEW tweets_daily AS (
     AVG(sentiment)          AS avg_sent,
     STDDEV(sentiment)       AS stdev_sent
   FROM tweets
+  WHERE is_retweet = 0
   GROUP BY username, t_date
   ORDER BY t_date DESC
 );
@@ -107,6 +111,7 @@ CREATE OR REPLACE VIEW tweets_weekly AS (
     AVG(sentiment)          AS avg_sent,
     STDDEV(sentiment)       AS stdev_sent
   FROM tweets
+  WHERE is_retweet = 0
   GROUP BY username, t_weekday
   ORDER BY t_weekday ASC
 );
@@ -121,7 +126,6 @@ CREATE OR REPLACE VIEW tweets_all AS (
     AVG(sentiment)          AS avg_sent,
     STDDEV(sentiment)       AS stdev_sent
   FROM tweets
+  WHERE is_retweet = 0
   GROUP BY username
 );
-
-SELECT MAX(created) FROM tweets WHERE username='realDonaldTrump';
