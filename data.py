@@ -37,33 +37,10 @@ def scrape_user_to_db(username):
 		return len(tweets)
 
 
-def get_tweets_by_day(username):
-	"""Get tweets by day for a given user. Must have already scraped that user into the database."""
-	with db.get_db() as cursor:
-		ret = []
-		sql = "SELECT t_date, total, total_len, avg_len, stdev_len, avg_sent, stdev_sent FROM tweets_daily WHERE username=%s"
-		cursor.execute(sql, username)
-		days = cursor.fetchall()
-		if days is None or len(days) == 0:
-			return []
-
-		for day in days:
-			ret.append({
-				"date": day[0],
-				"total": int(day[1]),
-				"total_len": int(day[2]),
-				"avg_len": float(day[3]),
-				"stdev_len": float(day[4]),
-				"avg_sent": float(day[5]),
-				"stdev_sent": float(day(6))
-			})
-		return sorted(ret, key=lambda x: x["date"])
-
-
 def get_tweets_hourly(username):
 	"""Get tweets by hour for a given user. Must have already scraped that user into the database."""
 	with db.get_db() as cursor:
-		ret = [{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0} for x in range(24)]
+		ret = [{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0, "avg_send": 0, "stdev_sent": 0} for x in range(24)]
 		sql = "SELECT t_hour, total, total_len, avg_len, stdev_len, avg_sent, stdev_sent FROM tweets_hourly_total WHERE username=%s"
 		cursor.execute(sql, username)
 		hours = cursor.fetchall()
@@ -72,7 +49,6 @@ def get_tweets_hourly(username):
 
 		for hour in hours:
 			ret[hour[0]] = {
-				"hour": int(hour[0]),
 				"total": int(hour[1]),
 				"total_len": int(hour[2]),
 				"avg_len": float(hour[3]),
@@ -88,7 +64,7 @@ def get_tweets_weekly(username):
 	"""Get tweets by weekday for a given user. Must have already scraped that user into the database. Returned as
 	an array with array[day] structure"""
 	with db.get_db() as cursor:
-		ret = [{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0} for x in range(7)]
+		ret = [{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0, "avg_send": 0, "stdev_sent": 0} for x in range(7)]
 		sql = "SELECT t_weekday, total, total_len, avg_len, stdev_len, avg_sent, stdev_sent FROM tweets_weekly WHERE username=%s"
 		cursor.execute(sql, username)
 		weekdays = cursor.fetchall()
@@ -111,7 +87,7 @@ def get_tweets_hourly_by_day(username):
 	"""Get tweets hourly on a weekday basis (e.g. 2 tweets a 5 PM on a Monday). Must have already scraped that user
 	into the database. Returned as a 2D array, with array[day][hour] structure"""
 	with db.get_db() as cursor:
-		ret = [[{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0} for x in range(24)] for x in range(7)]
+		ret = [[{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0, "avg_send": 0, "stdev_sent": 0} for x in range(24)] for x in range(7)]
 		sql = "SELECT t_hour, t_day, total, total_len, avg_len, stdev_len, avg_sent, stdev_sent FROM tweets_hourly_by_day WHERE username=%s"
 		cursor.execute(sql, username)
 		hours = cursor.fetchall()

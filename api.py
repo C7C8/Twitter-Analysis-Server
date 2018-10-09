@@ -44,16 +44,14 @@ class Analysis(Resource):
 		parser.add_argument("username", type=str, required=True)
 		parser.add_argument("analysis", type=str, required=True)
 		args = parser.parse_args()
-		if args["analysis"] not in ["alltime", "by_day", "hourly", "weekly", "hourly_daily"]:
-			return response(False, "Must specify analysis type"), 400
+		if args["analysis"] not in ["alltime", "hourly", "weekly", "hourly_daily"]:
+			return response(False, "Bad analysis type"), 400
 
 		username = args["username"]
 		action = args["analysis"]
 		analysis = None
 		if action == "alltime":
 			analysis = data.get_tweets_all_time(username)
-		elif action == "by_day":
-			analysis = data.get_tweets_hourly_by_day(username)
 		elif action == "hourly":
 			analysis = data.get_tweets_hourly(username)
 		elif action == "weekly":
@@ -69,7 +67,7 @@ class Analysis(Resource):
 
 @ns.route("/generate")
 class Generate(Resource):
-	"""Generate tweets for a given user"""
+	"""Generate tweets for a given user, or analyze existing text for probability"""
 
 	def get(self):
 		parser = reqparse.RequestParser()
