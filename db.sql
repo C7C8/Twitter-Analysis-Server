@@ -1,6 +1,7 @@
 CREATE TABLE analyzed_users (
   username  VARCHAR(15) PRIMARY KEY,
-  fullname  VARCHAR(50)
+  fullname  VARCHAR(50),
+  checked   DATETIME DEFAULT NOW()
 );
 
 CREATE OR REPLACE TABLE tweets (

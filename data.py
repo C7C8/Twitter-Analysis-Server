@@ -1,5 +1,5 @@
 """Base data analysis functions"""
-
+import datetime
 from twitterscraper.query import query_tweets_from_user
 import pymysql
 
@@ -20,8 +20,15 @@ def scrape_user_to_db(username):
 			cursor.execute("INSERT INTO analyzed_users (username) VALUES (%s)", username)
 			tweets = query_tweets_from_user(username, limit=5000)
 		else:
-			cursor.execute("SELECT MAX(created) FROM tweets WHERE username=%s", username)
+			cursor.execute("SELECT checked FROM analyzed_users WHERE username=%s", username)
 			d = cursor.fetchone()[0]
+			d = d if d is not None else datetime.datetime.utcfromtimestamp(0)
+
+			# If we've already checked this users's tweets within the past day, don't try it again
+			if (datetime.datetime.now() - d).days == 0:
+				return 0
+
+			cursor.execute("UPDATE analyzed_users SET checked=NOW() WHERE username=%s", username)
 			tweets = query_tweets_from_user(username, limit=5000)
 			tweets = list(filter(lambda tw: d < tw.timestamp, tweets))
 
