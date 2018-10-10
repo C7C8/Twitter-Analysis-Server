@@ -29,6 +29,8 @@ class ManageUsers(Resource):
 		parser.add_argument("username", type=str, required=True)
 		args = parser.parse_args()
 		count = data.scrape_user_to_db(args["username"])
+		if count is None:
+			return response(False, "Couldn't scrape tweets for user " + args["username"] + ", user probably doesn't exist")
 		get_markov_chain(args["username"])
 		if count == 0:
 			return response(True, "Didn't scrape any more tweets for " + args["username"], "count", 0), 200

@@ -17,8 +17,10 @@ def scrape_user_to_db(username):
 		# we don't have yet.
 		cursor.execute("SELECT * FROM analyzed_users WHERE username=%s", username)
 		if cursor.fetchone() is None:
-			cursor.execute("INSERT INTO analyzed_users (username) VALUES (%s)", username)
 			tweets = query_tweets_from_user(username, limit=5000)
+			if len(tweets) == 0:
+				return None
+			cursor.execute("INSERT INTO analyzed_users (username) VALUES (%s)", username)
 		else:
 			cursor.execute("SELECT checked FROM analyzed_users WHERE username=%s", username)
 			d = cursor.fetchone()[0]
