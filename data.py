@@ -17,10 +17,11 @@ def scrape_user_to_db(username):
 		# we don't have yet.
 		cursor.execute("SELECT * FROM analyzed_users WHERE username=%s", username)
 		if cursor.fetchone() is None:
+			cursor.execute("INSERT INTO analyzed_users (username, checked) VALUES (%s, NOW())", username)
+			cursor.connection.commit()
 			tweets = query_tweets_from_user(username, limit=5000)
 			if len(tweets) == 0:
 				return None
-			cursor.execute("INSERT INTO analyzed_users (username) VALUES (%s)", username)
 		else:
 			cursor.execute("SELECT checked FROM analyzed_users WHERE username=%s", username)
 			d = cursor.fetchone()[0]
@@ -64,7 +65,7 @@ def scrape_user_to_db(username):
 def get_tweets_hourly(username):
 	"""Get tweets by hour for a given user. Must have already scraped that user into the database."""
 	with db.get_db() as cursor:
-		ret = [{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0, "avg_send": 0, "stdev_sent": 0} for x in range(24)]
+		ret = [{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0, "avg_sent": 0, "stdev_sent": 0} for x in range(24)]
 		sql = "SELECT t_hour, total, total_len, avg_len, stdev_len, avg_sent, stdev_sent FROM tweets_hourly_total WHERE username=%s"
 		cursor.execute(sql, username)
 		hours = cursor.fetchall()
@@ -111,7 +112,7 @@ def get_tweets_hourly_by_day(username):
 	"""Get tweets hourly on a weekday basis (e.g. 2 tweets a 5 PM on a Monday). Must have already scraped that user
 	into the database. Returned as a 2D array, with array[day][hour] structure"""
 	with db.get_db() as cursor:
-		ret = [[{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0, "avg_send": 0, "stdev_sent": 0} for x in range(24)] for x in range(7)]
+		ret = [[{"total": 0, "total_len": 0, "avg_len": 0, "stdev_len": 0, "avg_sent": 0, "stdev_sent": 0} for x in range(24)] for x in range(7)]
 		sql = "SELECT t_hour, t_day, total, total_len, avg_len, stdev_len, avg_sent, stdev_sent FROM tweets_hourly_by_day WHERE username=%s"
 		cursor.execute(sql, username)
 		hours = cursor.fetchall()

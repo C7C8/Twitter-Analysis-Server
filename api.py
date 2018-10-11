@@ -35,6 +35,7 @@ class ManageUsers(Resource):
 		if count == 0:
 			return response(True, "Didn't scrape any more tweets for " + args["username"], "count", 0), 200
 		else:
+			get_markov_chain(args["username"], True)
 			return response(True, "Scraped tweets for " + args["username"], "count", count), 200
 
 
